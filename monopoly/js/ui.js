@@ -89,21 +89,17 @@ const UI = {
   },
 
   tileInner(sp, i) {
-    const icons = {
-      go: '⬇️ GO', jail: '🔒', freeparking: '🅿️', gotojail: '🚓',
-      chance: '❓', chest: '🎁', tax: '💸',
-      railroad: '🚂', utility: sp.name === 'Water Works' ? '🚰' : '💡',
-    };
-    if (sp.type === 'go') return `<div class="corner-label">COLLECT<br>$200<br><span class="big">GO</span></div>`;
-    if (sp.type === 'jail') return `<div class="corner-label"><span class="big">🔒</span><br>JUST<br>VISITING</div>`;
-    if (sp.type === 'freeparking') return `<div class="corner-label">FREE<br><span class="big">🅿️</span><br>PARKING</div>`;
-    if (sp.type === 'gotojail') return `<div class="corner-label">GO TO<br><span class="big">🚓</span><br>JAIL</div>`;
-    if (sp.type === 'tax') return `<div class="t-name">${sp.name}</div><div class="t-ic">💸</div><div class="t-price">Pay $${sp.amount}</div>`;
-    if (sp.type === 'chance') return `<div class="t-name">Chance</div><div class="t-ic">❓</div>`;
-    if (sp.type === 'chest') return `<div class="t-name">Community Chest</div><div class="t-ic">🎁</div>`;
-    if (sp.type === 'railroad') return `<div class="t-name">${sp.name}</div><div class="t-ic">🚂</div><div class="t-price">$${sp.price}</div>`;
-    if (sp.type === 'utility') return `<div class="t-name">${sp.name}</div><div class="t-ic">${icons.utility}</div><div class="t-price">$${sp.price}</div>`;
-    return `<div class="t-name">${sp.name}</div><div class="t-price">$${sp.price}</div>`;
+    const utilIcon = sp.name === 'تأسیسات آب' ? '🚰' : '💡';
+    if (sp.type === 'go') return `<div class="corner-label">۲۰۰ دلار<br>بگیر<br><span class="big">شروع</span></div>`;
+    if (sp.type === 'jail') return `<div class="corner-label"><span class="big">🔒</span><br>زندان<br>بازدید</div>`;
+    if (sp.type === 'freeparking') return `<div class="corner-label">پارکینگ<br><span class="big">🅿️</span><br>رایگان</div>`;
+    if (sp.type === 'gotojail') return `<div class="corner-label">برو به<br><span class="big">🚓</span><br>زندان</div>`;
+    if (sp.type === 'tax') return `<div class="t-name">${sp.name}</div><div class="t-ic">💸</div><div class="t-price">${sp.amount} دلار</div>`;
+    if (sp.type === 'chance') return `<div class="t-name">شانس</div><div class="t-ic">❓</div>`;
+    if (sp.type === 'chest') return `<div class="t-name">صندوق مشترک</div><div class="t-ic">🎁</div>`;
+    if (sp.type === 'railroad') return `<div class="t-name">${sp.name}</div><div class="t-ic">🚂</div><div class="t-price">${sp.price} دلار</div>`;
+    if (sp.type === 'utility') return `<div class="t-name">${sp.name}</div><div class="t-ic">${utilIcon}</div><div class="t-price">${sp.price} دلار</div>`;
+    return `<div class="t-name">${sp.name}</div><div class="t-price">${sp.price} دلار</div>`;
   },
 
   buildTokens() {
@@ -248,11 +244,11 @@ const UI = {
           <span class="pc-cash">$${p.cash}</span>
         </div>
         <div class="pc-meta">
-          ${p.inJail ? '<span class="jail-tag">🔒 In Jail</span>' : ''}
+          ${p.inJail ? '<span class="jail-tag">🔒 در زندان</span>' : ''}
           ${p.getOutCards ? `<span class="goj">🎟️×${p.getOutCards}</span>` : ''}
-          <span class="worth">net $${g.netWorth(p)}</span>
+          <span class="worth">دارایی ${g.netWorth(p)}$</span>
         </div>
-        <div class="pc-chips">${chips || '<span class="muted">no properties</span>'}</div>`;
+        <div class="pc-chips">${chips || '<span class="muted">بدون ملک</span>'}</div>`;
       this.el.players.appendChild(card);
     });
   },
@@ -262,15 +258,15 @@ const UI = {
     const [d1, d2] = g.dice;
     const tk = TOKENS.find(t => t.id === g.player.token);
     this.el.center.innerHTML = `
-      <div class="brand">MONOPOLY</div>
+      <div class="brand">مونوپولی</div>
       <div class="turn-banner" style="--accent:${tk.color}">
         <span class="tb-token">${tk.emoji}</span>
-        <span>${g.player.name}'s turn</span>
+        <span>نوبت ${g.player.name}</span>
       </div>
       <div class="dice">
         ${this.dieFace(d1)} ${this.dieFace(d2)}
       </div>
-      <div class="bank-note">🏦 Houses left: ${g.housesLeft} · Hotels left: ${g.hotelsLeft}</div>
+      <div class="bank-note">🏦 خانهٔ باقی‌مانده: ${g.housesLeft} · هتل باقی‌مانده: ${g.hotelsLeft}</div>
       <div id="action-bar"></div>`;
     this.el.actions = document.getElementById('action-bar');
   },
@@ -292,27 +288,27 @@ const UI = {
     if (g.phase === 'gameover') return;
     const p = g.player;
     if (p.isAI) {
-      bar.innerHTML = `<div class="ai-thinking">🤖 ${p.name} is thinking…</div>`;
+      bar.innerHTML = `<div class="ai-thinking">🤖 ${p.name} در حال فکر کردن…</div>`;
       return;
     }
     if (g.pending) return; // pending modal/inline takes over below
 
     if (g.phase === 'preroll') {
       if (p.inJail) {
-        bar.appendChild(this.btn('🎲 Roll for doubles', () => Controller.humanRoll()));
-        bar.appendChild(this.btn(`💵 Pay $${JAIL_FINE} bail`, () => { g.jailPay(); this.render(); }, p.cash < JAIL_FINE));
+        bar.appendChild(this.btn('🎲 تاس برای جفت', () => Controller.humanRoll()));
+        bar.appendChild(this.btn(`💵 پرداخت ${JAIL_FINE}$ وثیقه`, () => { g.jailPay(); this.render(); }, p.cash < JAIL_FINE));
         if (p.getOutCards > 0)
-          bar.appendChild(this.btn('🎟️ Use card', () => { g.jailUseCard(); this.render(); }));
+          bar.appendChild(this.btn('🎟️ استفاده از کارت', () => { g.jailUseCard(); this.render(); }));
       } else {
-        bar.appendChild(this.btn('🎲 Roll dice', () => Controller.humanRoll(), false, 'primary'));
+        bar.appendChild(this.btn('🎲 پرتاب تاس', () => Controller.humanRoll(), false, 'primary'));
       }
-      bar.appendChild(this.btn('🏗️ Manage', () => this.openManage()));
-      bar.appendChild(this.btn('🤝 Trade', () => this.openTrade()));
+      bar.appendChild(this.btn('🏗️ مدیریت', () => this.openManage()));
+      bar.appendChild(this.btn('🤝 معامله', () => this.openTrade()));
     } else if (g.phase === 'postroll') {
-      bar.appendChild(this.btn('🏗️ Manage', () => this.openManage()));
-      bar.appendChild(this.btn('🤝 Trade', () => this.openTrade()));
+      bar.appendChild(this.btn('🏗️ مدیریت', () => this.openManage()));
+      bar.appendChild(this.btn('🤝 معامله', () => this.openTrade()));
       const dbl = g.lastRollWasDoubles && !p.inJail && g.doubles > 0 && g.doubles < 3;
-      bar.appendChild(this.btn(dbl ? '🎲 Roll again (doubles)' : '✅ End turn',
+      bar.appendChild(this.btn(dbl ? '🎲 پرتاب دوباره (جفت)' : '✅ پایان نوبت',
         () => { g.endTurn(); this.render(); }, false, 'primary'));
     }
   },
@@ -343,15 +339,15 @@ const UI = {
     const i = g.pending.index;
     const sp = BOARD[i];
     this.modal(`
-      <h2>Buy ${sp.name}?</h2>
+      <h2>«${sp.name}» را بخری؟</h2>
       <div class="buy-card" style="--c:${GROUP_COLORS[sp.group] || '#888'}">
         <div class="bc-bar"></div>
-        <div class="bc-price">Price $${sp.price}</div>
+        <div class="bc-price">قیمت ${sp.price}$</div>
         ${this.rentTable(i)}
       </div>
       <div class="modal-actions">
-        <button class="act primary" id="m-buy" ${g.player.cash < sp.price ? 'disabled' : ''}>💰 Buy for $${sp.price}</button>
-        <button class="act" id="m-auction">🔨 Auction</button>
+        <button class="act primary" id="m-buy" ${g.player.cash < sp.price ? 'disabled' : ''}>💰 خرید به ${sp.price}$</button>
+        <button class="act" id="m-auction">🔨 حراج</button>
       </div>`);
     document.getElementById('m-buy').onclick = () => { g.buyCurrent(); this.render(); };
     document.getElementById('m-auction').onclick = () => { g.declineCurrent(); this.render(); };
@@ -360,12 +356,12 @@ const UI = {
   rentTable(i) {
     const sp = BOARD[i];
     if (sp.type === 'railroad')
-      return `<div class="rent-rows"><div>1 RR <b>$25</b></div><div>2 RR <b>$50</b></div><div>3 RR <b>$100</b></div><div>4 RR <b>$200</b></div></div>`;
+      return `<div class="rent-rows"><div>۱ راه‌آهن <b>۲۵$</b></div><div>۲ راه‌آهن <b>۵۰$</b></div><div>۳ راه‌آهن <b>۱۰۰$</b></div><div>۴ راه‌آهن <b>۲۰۰$</b></div></div>`;
     if (sp.type === 'utility')
-      return `<div class="rent-rows"><div>1 owned <b>4× dice</b></div><div>both <b>10× dice</b></div></div>`;
-    const labels = ['Rent', '1 house', '2 houses', '3 houses', '4 houses', 'HOTEL'];
-    return `<div class="rent-rows">${sp.rent.map((r, k) => `<div>${labels[k]} <b>$${r}</b></div>`).join('')}
-            <div class="muted">House cost $${sp.houseCost} · Mortgage $${sp.mortgage}</div></div>`;
+      return `<div class="rent-rows"><div>۱ عدد <b>۴× تاس</b></div><div>هر دو <b>۱۰× تاس</b></div></div>`;
+    const labels = ['اجاره', '۱ خانه', '۲ خانه', '۳ خانه', '۴ خانه', 'هتل'];
+    return `<div class="rent-rows">${sp.rent.map((r, k) => `<div>${labels[k]} <b>${r}$</b></div>`).join('')}
+            <div class="muted">هزینهٔ خانه ${sp.houseCost}$ · رهن ${sp.mortgage}$</div></div>`;
   },
 
   showAuction() {
@@ -375,13 +371,13 @@ const UI = {
     const bidder = g.players[a.contenders[a.turn]];
     const minNext = a.bid + 10;
     this.modal(`
-      <h2>🔨 Auction — ${sp.name}</h2>
-      <p class="auc-state">High bid: <b>$${a.bid}</b> ${a.highBidder !== null ? 'by ' + g.players[a.highBidder].name : '(none)'} </p>
-      <p><b>${bidder.name}</b>, your move. (cash $${bidder.cash})</p>
+      <h2>🔨 حراج — ${sp.name}</h2>
+      <p class="auc-state">بالاترین پیشنهاد: <b>${a.bid}$</b> ${a.highBidder !== null ? 'از ' + g.players[a.highBidder].name : '(هیچ)'} </p>
+      <p>نوبت <b>${bidder.name}</b> است. (موجودی ${bidder.cash}$)</p>
       <div class="auc-input">
         <input type="number" id="auc-amt" value="${Math.min(minNext, bidder.cash)}" min="${minNext}" max="${bidder.cash}" step="10">
-        <button class="act primary" id="auc-bid">Bid</button>
-        <button class="act" id="auc-pass">Pass</button>
+        <button class="act primary" id="auc-bid">پیشنهاد</button>
+        <button class="act" id="auc-pass">انصراف</button>
       </div>`);
     document.getElementById('auc-bid').onclick = () => {
       const v = parseInt(document.getElementById('auc-amt').value, 10);
@@ -395,12 +391,12 @@ const UI = {
     const d = g.pending;
     const p = g.player;
     this.modal(`
-      <h2 class="warn">⚠️ You owe $${d.amount}</h2>
-      <p>Cash on hand: <b>$${p.cash}</b>. Sell houses or mortgage property to raise the difference, then pay.</p>
+      <h2 class="warn">⚠️ بدهی شما ${d.amount}$</h2>
+      <p>موجودی نقد: <b>${p.cash}$</b>. با فروش خانه یا رهن املاک پول جمع کن و سپس بپرداز.</p>
       <div id="debt-assets">${this.assetManager(true)}</div>
       <div class="modal-actions">
-        <button class="act primary" id="debt-pay" ${p.cash < d.amount ? 'disabled' : ''}>Pay $${d.amount}</button>
-        <button class="act danger" id="debt-bk">💀 Declare Bankruptcy</button>
+        <button class="act primary" id="debt-pay" ${p.cash < d.amount ? 'disabled' : ''}>پرداخت ${d.amount}$</button>
+        <button class="act danger" id="debt-bk">💀 اعلام ورشکستگی</button>
       </div>`);
     document.getElementById('debt-pay').onclick = () => { g.settleDebt(); this.render(); };
     document.getElementById('debt-bk').onclick = () => { g.declareBankruptcy(); this.render(); };
@@ -408,10 +404,10 @@ const UI = {
 
   /* ---- management modal (build / mortgage) ----------------------------- */
   openManage() {
-    this.modal(`<h2>🏗️ Manage Properties</h2>
-      <p class="muted">Build evenly across a full color set. Mortgage to raise cash.</p>
+    this.modal(`<h2>🏗️ مدیریت املاک</h2>
+      <p class="muted">روی یک ست رنگی کامل، خانه‌ها را یکنواخت بساز. برای پول، ملک را رهن بگذار.</p>
       <div id="manage-list">${this.assetManager(false)}</div>
-      <div class="modal-actions"><button class="act primary" id="m-close">Done</button></div>`);
+      <div class="modal-actions"><button class="act primary" id="m-close">پایان</button></div>`);
     document.getElementById('m-close').onclick = () => this.closeModal();
   },
 
@@ -419,24 +415,24 @@ const UI = {
     const g = this.game;
     const p = g.player;
     const props = BOARD.map((sp, i) => (g.owner[i] === p.id ? i : -1)).filter(i => i >= 0);
-    if (!props.length) return '<p class="muted">You own no properties.</p>';
+    if (!props.length) return '<p class="muted">شما هیچ ملکی ندارید.</p>';
     // order by group
     props.sort((a, b) => BOARD[a].group.localeCompare(BOARD[b].group) || a - b);
     return `<div class="asset-grid">` + props.map(i => {
       const sp = BOARD[i];
       const canB = g.canBuild(i), canS = g.canSell(i);
       const canM = g.canMortgage(i), canU = g.canUnmortgage(i);
-      const houseLabel = g.houses[i] === 5 ? '🏨 Hotel' : '🏠'.repeat(g.houses[i]) || '—';
+      const houseLabel = g.houses[i] === 5 ? '🏨 هتل' : '🏠'.repeat(g.houses[i]) || '—';
       return `<div class="asset ${g.mortgaged[i] ? 'mort' : ''}">
         <div class="as-bar" style="background:${GROUP_COLORS[sp.group]}"></div>
         <div class="as-name">${sp.name}</div>
-        <div class="as-state">${g.mortgaged[i] ? 'MORTGAGED' : houseLabel}</div>
+        <div class="as-state">${g.mortgaged[i] ? 'در رهن' : houseLabel}</div>
         <div class="as-btns">
           ${sp.type === 'property' ? `
             <button class="mini" data-act="build" data-i="${i}" ${canB ? '' : 'disabled'}>＋🏠 $${sp.houseCost}</button>
             <button class="mini" data-act="sell" data-i="${i}" ${canS ? '' : 'disabled'}>－🏠</button>` : ''}
-          <button class="mini" data-act="mort" data-i="${i}" ${canM ? '' : 'disabled'}>Mortgage +$${sp.mortgage}</button>
-          <button class="mini" data-act="unmort" data-i="${i}" ${canU ? '' : 'disabled'}>Redeem -$${Math.ceil(sp.mortgage*1.1)}</button>
+          <button class="mini" data-act="mort" data-i="${i}" ${canM ? '' : 'disabled'}>رهن +${sp.mortgage}$</button>
+          <button class="mini" data-act="unmort" data-i="${i}" ${canU ? '' : 'disabled'}>آزادسازی -${Math.ceil(sp.mortgage*1.1)}$</button>
         </div>
       </div>`;
     }).join('') + `</div>`;
@@ -468,7 +464,7 @@ const UI = {
     const g = this.game;
     const me = g.player;
     const others = g.livePlayers().filter(p => p.id !== me.id);
-    if (!others.length) { this.toast('No one to trade with.'); return; }
+    if (!others.length) { this.toast('کسی برای معامله نیست.'); return; }
     let partnerId = others[0].id;
     const render = () => {
       const partner = g.players[partnerId];
@@ -477,25 +473,25 @@ const UI = {
       const propChecks = (arr) => arr.map(i => `
         <label class="trade-prop"><input type="checkbox" data-i="${i}">
           <span class="tp-bar" style="background:${GROUP_COLORS[BOARD[i].group]}"></span>${BOARD[i].name}</label>`).join('') || '<span class="muted">none</span>';
-      this.modal(`<h2>🤝 Propose Trade</h2>
-        <div class="trade-head">With:
+      this.modal(`<h2>🤝 پیشنهاد معامله</h2>
+        <div class="trade-head">با:
           <select id="trade-partner">${others.map(o => `<option value="${o.id}" ${o.id===partnerId?'selected':''}>${o.name}</option>`).join('')}</select>
         </div>
         <div class="trade-cols">
           <div class="trade-col">
-            <h3>You give</h3>
+            <h3>تو می‌دهی</h3>
             <div id="give-props">${propChecks(myProps)}</div>
-            <label>Cash $<input type="number" id="give-cash" value="0" min="0" max="${me.cash}" step="10"></label>
+            <label>پول $<input type="number" id="give-cash" value="0" min="0" max="${me.cash}" step="10"></label>
           </div>
           <div class="trade-col">
-            <h3>You get</h3>
+            <h3>تو می‌گیری</h3>
             <div id="get-props">${propChecks(thProps)}</div>
-            <label>Cash $<input type="number" id="get-cash" value="0" min="0" max="${partner.cash}" step="10"></label>
+            <label>پول $<input type="number" id="get-cash" value="0" min="0" max="${partner.cash}" step="10"></label>
           </div>
         </div>
         <div class="modal-actions">
-          <button class="act primary" id="trade-send">Send offer</button>
-          <button class="act" id="trade-cancel">Cancel</button>
+          <button class="act primary" id="trade-send">ارسال پیشنهاد</button>
+          <button class="act" id="trade-cancel">انصراف</button>
         </div>`);
       document.getElementById('trade-partner').onchange = (e) => { partnerId = +e.target.value; render(); };
       document.getElementById('trade-cancel').onclick = () => this.closeModal();
@@ -505,7 +501,7 @@ const UI = {
         const get = { cash: +document.getElementById('get-cash').value || 0,
           props: [...document.querySelectorAll('#get-props input:checked')].map(c => +c.dataset.i) };
         const offer = { fromId: me.id, toId: partnerId, give, get };
-        if (!g.tradeValid(offer)) { this.toast('Invalid trade (check buildings / funds).'); return; }
+        if (!g.tradeValid(offer)) { this.toast('معاملهٔ نامعتبر (ساختمان‌ها/موجودی را بررسی کن).'); return; }
         this.closeModal();
         Controller.submitTrade(offer);
       };
@@ -520,18 +516,18 @@ const UI = {
     const partner = g.players[o.toId];
     if (partner.isAI) return;
     const list = (arr, cash) => {
-      const props = arr.map(i => BOARD[i].name).join(', ') || '—';
-      return `properties: ${props}${cash ? ` · $${cash}` : ''}`;
+      const props = arr.map(i => BOARD[i].name).join('، ') || '—';
+      return `املاک: ${props}${cash ? ` · ${cash}$` : ''}`;
     };
-    this.modal(`<h2>🤝 Trade offer to ${partner.name}</h2>
-      <p><b>${g.players[o.fromId].name} gives:</b> ${list(o.give.props, o.give.cash)}</p>
-      <p><b>and receives:</b> ${list(o.get.props, o.get.cash)}</p>
+    this.modal(`<h2>🤝 پیشنهاد معامله به ${partner.name}</h2>
+      <p><b>${g.players[o.fromId].name} می‌دهد:</b> ${list(o.give.props, o.give.cash)}</p>
+      <p><b>و دریافت می‌کند:</b> ${list(o.get.props, o.get.cash)}</p>
       <div class="modal-actions">
-        <button class="act primary" id="tc-accept">Accept</button>
-        <button class="act danger" id="tc-reject">Reject</button>
+        <button class="act primary" id="tc-accept">پذیرش</button>
+        <button class="act danger" id="tc-reject">رد</button>
       </div>`);
     document.getElementById('tc-accept').onclick = () => { g.executeTrade(o); this.render(); };
-    document.getElementById('tc-reject').onclick = () => { g.cancelTrade(); this.toast('Trade rejected.'); this.render(); };
+    document.getElementById('tc-reject').onclick = () => { g.cancelTrade(); this.toast('معامله رد شد.'); this.render(); };
   },
 
   /* ---- card popup ------------------------------------------------------ */
@@ -539,7 +535,7 @@ const UI = {
     const wrap = document.createElement('div');
     wrap.className = 'card-pop ' + (deck === 'chance' ? 'chance' : 'chest');
     wrap.innerHTML = `<div class="cp-inner">
-      <div class="cp-title">${deck === 'chance' ? '❓ CHANCE' : '🎁 COMMUNITY CHEST'}</div>
+      <div class="cp-title">${deck === 'chance' ? '❓ شانس' : '🎁 صندوق مشترک'}</div>
       <div class="cp-text">${card.text}</div></div>`;
     document.body.appendChild(wrap);
     requestAnimationFrame(() => wrap.classList.add('show'));
@@ -581,9 +577,9 @@ const UI = {
   onTileClick(i) {
     const g = this.game;
     if (g.owner[i] === null && BOARD[i].price) {
-      this.toast(`${BOARD[i].name} — $${BOARD[i].price} (unowned)`);
+      this.toast(`${BOARD[i].name} — ${BOARD[i].price}$ (بدون مالک)`);
     } else if (g.owner[i] !== null) {
-      this.toast(`${BOARD[i].name} — owned by ${g.players[g.owner[i]].name}`);
+      this.toast(`${BOARD[i].name} — مالک: ${g.players[g.owner[i]].name}`);
     }
   },
 
@@ -592,9 +588,9 @@ const UI = {
     const tk = TOKENS.find(t => t.id === winner.token);
     this.el.modal.innerHTML = `<div class="modal-box win">
       <div class="confetti">🎉</div>
-      <h1>${tk.emoji} ${winner.name} wins!</h1>
-      <p>Last tycoon standing with $${winner.cash} in cash.</p>
-      <button class="act primary" onclick="location.reload()">🔄 New Game</button>
+      <h1>${tk.emoji} ${winner.name} برنده شد!</h1>
+      <p>آخرین سرمایه‌دار باقی‌مانده با ${winner.cash}$ پول نقد.</p>
+      <button class="act primary" onclick="location.reload()">🔄 بازی جدید</button>
     </div>`;
     this.el.modal.classList.add('open');
   },

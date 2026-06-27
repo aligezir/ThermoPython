@@ -18,26 +18,26 @@ const Controller = {
         <div class="setup-row ${on ? '' : 'off'}" data-i="${i}">
           <label class="sw"><input type="checkbox" class="p-on" ${on ? 'checked' : ''} ${i < 2 ? 'disabled' : ''}><span></span></label>
           <span class="p-token">${TOKENS[i].emoji}</span>
-          <input class="p-name" type="text" value="Player ${i + 1}" maxlength="14">
+          <input class="p-name" type="text" value="بازیکن ${i + 1}" maxlength="14">
           <select class="p-type">
-            <option value="human">🧑 Human</option>
-            <option value="ai" ${i >= 2 ? '' : ''}>🤖 Computer</option>
+            <option value="human">🧑 انسان</option>
+            <option value="ai" ${i >= 2 ? '' : ''}>🤖 کامپیوتر</option>
           </select>
         </div>`);
     }
     root.innerHTML = `
       <div class="setup-card">
-        <div class="setup-brand">MONOPOLY</div>
-        <p class="setup-sub">The classic property-trading game · full rules</p>
+        <div class="setup-brand">مونوپولی</div>
+        <p class="setup-sub">بازی کلاسیک خرید و فروش املاک · با تمام قواعد</p>
         <div class="setup-players">${rows.join('')}</div>
-        <button class="act primary big" id="start-btn">▶ Start Game</button>
-        <details class="rules-peek"><summary>How to play / rules included</summary>
+        <button class="act primary big" id="start-btn">▶ شروع بازی</button>
+        <details class="rules-peek"><summary>راهنما / قواعد گنجانده‌شده</summary>
           <ul>
-            <li>Roll, move, buy property or send it to auction.</li>
-            <li>Collect $200 each time you pass GO.</li>
-            <li>Pay rent — full color sets double base rent and let you build houses & hotels.</li>
-            <li>Chance & Community Chest, Income/Luxury Tax, Jail with bail, doubles, mortgaging and player-to-player trading are all in.</li>
-            <li>Bankrupt a rival by leaving them unable to pay. Last tycoon standing wins.</li>
+            <li>تاس بینداز، حرکت کن، ملک بخر یا آن را به حراج بگذار.</li>
+            <li>هر بار از «شروع» عبور کنی ۲۰۰ دلار بگیر.</li>
+            <li>اجاره بپرداز — ست رنگی کامل اجارهٔ پایه را دو برابر می‌کند و امکان ساخت خانه و هتل می‌دهد.</li>
+            <li>کارت‌های شانس و صندوق مشترک، مالیات درآمد/تجملات، زندان با وثیقه، جفت، رهن و معاملهٔ بین بازیکنان همگی هستند.</li>
+            <li>رقیب را با ناتوان کردن در پرداخت، ورشکست کن. آخرین سرمایه‌دار باقی‌مانده برنده است.</li>
           </ul>
         </details>
       </div>`;
@@ -55,12 +55,12 @@ const Controller = {
       const on = row.querySelector('.p-on').checked;
       if (!on) return;
       cfgs.push({
-        name: row.querySelector('.p-name').value.trim() || `Player ${i + 1}`,
+        name: row.querySelector('.p-name').value.trim() || `بازیکن ${i + 1}`,
         isAI: row.querySelector('.p-type').value === 'ai',
         token: TOKENS[i].id,
       });
     });
-    if (cfgs.length < 2) { alert('Need at least 2 players.'); return; }
+    if (cfgs.length < 2) { alert('حداقل به ۲ بازیکن نیاز است.'); return; }
 
     document.getElementById('setup').style.display = 'none';
     document.getElementById('game').style.display = 'grid';
@@ -182,10 +182,10 @@ const Controller = {
                && partner.cash - offer.get.cash >= 0;
     if (ok && g.tradeValid(offer)) {
       g.executeTrade(offer);
-      UI.toast(`${partner.name} accepted the trade.`);
+      UI.toast(`${partner.name} معامله را پذیرفت.`);
     } else {
       g.cancelTrade();
-      UI.toast(`${partner.name} rejected the trade.`);
+      UI.toast(`${partner.name} معامله را رد کرد.`);
     }
     UI.render();
   },

@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monopoly · Web Edition</title>
+  <title>مونوپولی · نسخهٔ وب</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Passion+One:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&family=Passion+One:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- setup / lobby -->
+  <!-- صفحهٔ شروع / لابی -->
   <div id="setup"></div>
 
-  <!-- main game -->
+  <!-- بازی اصلی -->
   <div id="game" style="display:none">
     <header class="topbar">
-      <div class="logo">🎩 MONOPOLY <span>web edition</span></div>
-      <div class="hint">Pass GO → +$200 · Buy, build, bankrupt your rivals</div>
+      <div class="logo">🎩 مونوپولی <span>نسخهٔ وب</span></div>
+      <div class="hint">عبور از «شروع» ← ۲۰۰ دلار · بخر، بساز، رقیب را ورشکست کن</div>
     </header>
 
     <main class="board-wrap">
@@ -29,13 +29,13 @@
     <aside class="sidebar">
       <section id="players" class="panel"></section>
       <section class="panel log-panel">
-        <h3>📜 Activity</h3>
+        <h3>📜 رویدادها</h3>
         <div id="log"></div>
       </section>
     </aside>
   </div>
 
-  <!-- modal overlay -->
+  <!-- لایهٔ مودال -->
   <div id="modal"></div>
 
   <script src="js/data.js"></script>

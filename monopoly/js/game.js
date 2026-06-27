@@ -62,8 +62,8 @@ class MonopolyGame {
     this.chancePtr = 0;
     this.chestPtr = 0;
 
-    this.log(`🎲 New game — ${this.players.map(p => p.name).join(', ')}.`);
-    this.log(`${this.player.name} goes first.`);
+    this.log(`🎲 بازی جدید — ${this.players.map(p => p.name).join('، ')}.`);
+    this.log(`${this.player.name} اول شروع می‌کند.`);
   }
 
   /* ---- convenience accessors ------------------------------------------- */
@@ -128,7 +128,7 @@ class MonopolyGame {
     if (!p.inJail) return;
     if (!this.charge(p, JAIL_FINE, null)) return;     // can't afford -> debt flow
     p.inJail = false; p.jailTurns = 0;
-    this.log(`${p.name} pays $${JAIL_FINE} bail and is free.`);
+    this.log(`${p.name} مبلغ ${JAIL_FINE} دلار وثیقه داد و آزاد شد.`);
     this.render();
   }
 
@@ -136,7 +136,7 @@ class MonopolyGame {
     const p = this.player;
     if (!p.inJail || p.getOutCards <= 0) return;
     p.getOutCards--; p.inJail = false; p.jailTurns = 0;
-    this.log(`${p.name} uses a Get Out of Jail Free card.`);
+    this.log(`${p.name} از کارت «آزادی از زندان» استفاده کرد.`);
     this.render();
   }
 
@@ -148,14 +148,14 @@ class MonopolyGame {
     this.dice = [d1, d2];
     const isDouble = d1 === d2;
     this.lastRollWasDoubles = isDouble;
-    this.log(`${p.name} rolls ${d1} + ${d2} = ${d1 + d2}${isDouble ? ' (doubles!)' : ''}.`);
+    this.log(`${p.name} تاس انداخت: ${d1} + ${d2} = ${d1 + d2}${isDouble ? ' (جفت!)' : ''}.`);
 
     if (p.inJail) return this._jailRoll(isDouble, d1 + d2);
 
     if (isDouble) {
       this.doubles++;
       if (this.doubles === 3) {
-        this.log(`${p.name} rolled doubles three times — off to Jail!`);
+        this.log(`${p.name} سه بار پشت‌سرهم جفت آورد — به زندان!`);
         this.sendToJail(p);
         this.phase = 'postroll';
         this.render();
@@ -171,19 +171,19 @@ class MonopolyGame {
     const p = this.player;
     if (isDouble) {
       p.inJail = false; p.jailTurns = 0;
-      this.log(`${p.name} rolls doubles and walks free!`);
+      this.log(`${p.name} جفت آورد و آزاد شد!`);
       this.doubles = 0;                 // does NOT grant another roll from jail
       this._advance(p, total, /*fromJail*/ true);
     } else {
       p.jailTurns++;
       if (p.jailTurns >= 3) {
-        this.log(`${p.name} failed three times — must pay $${JAIL_FINE}.`);
+        this.log(`${p.name} سه بار ناموفق بود — باید ${JAIL_FINE} دلار بپردازد.`);
         if (this.charge(p, JAIL_FINE, null)) {
           p.inJail = false; p.jailTurns = 0;
           this._advance(p, total, true);
         }
       } else {
-        this.log(`${p.name} stays in Jail (attempt ${p.jailTurns}/3).`);
+        this.log(`${p.name} در زندان می‌ماند (تلاش ${p.jailTurns}/۳).`);
         this.phase = 'postroll';
         this.render();
       }
@@ -198,7 +198,7 @@ class MonopolyGame {
     let to = (from + steps) % BOARD.length;
     if (!fromJail && from + steps >= BOARD.length) {
       p.cash += GO_SALARY;
-      this.log(`${p.name} passes GO and collects $${GO_SALARY}.`);
+      this.log(`${p.name} از «شروع» عبور کرد و ${GO_SALARY} دلار گرفت.`);
     }
     this.hooks.animateMove(p.id, from, to, () => {
       p.position = to;
@@ -213,7 +213,7 @@ class MonopolyGame {
     if (goBonus && target <= from && target !== from) {
       // wrapped around the board
       p.cash += GO_SALARY;
-      this.log(`${p.name} passes GO and collects $${GO_SALARY}.`);
+      this.log(`${p.name} از «شروع» عبور کرد و ${GO_SALARY} دلار گرفت.`);
     } else if (goBonus && target === 0 && from !== 0) {
       // handled above for wrap; direct landing on GO gives salary via _advance normally
     }
@@ -228,19 +228,19 @@ class MonopolyGame {
     const sp = BOARD[index];
     switch (sp.type) {
       case 'go':
-        this.log(`${p.name} lands on GO.`);
+        this.log(`${p.name} روی «شروع» فرود آمد.`);
         this._afterLanding(); break;
       case 'jail':
-        this.log(`${p.name} is just visiting Jail.`);
+        this.log(`${p.name} فقط به زندان سر می‌زند.`);
         this._afterLanding(); break;
       case 'freeparking':
-        this.log(`${p.name} rests at Free Parking.`);
+        this.log(`${p.name} در پارکینگ رایگان استراحت می‌کند.`);
         this._afterLanding(); break;
       case 'gotojail':
         this.sendToJail(p);
         this._afterLanding(); break;
       case 'tax':
-        this.log(`${p.name} owes $${sp.amount} ${sp.name}.`);
+        this.log(`${p.name} باید ${sp.amount} دلار «${sp.name}» بپردازد.`);
         this.charge(p, sp.amount, null);
         this._afterLanding(); break;
       case 'chance':
@@ -258,21 +258,21 @@ class MonopolyGame {
     if (ownerId === null) {
       // open for purchase
       this.pending = { type: 'buy', index };
-      this.log(`${sp.name} is unowned ($${sp.price}).`);
+      this.log(`«${sp.name}» بدون مالک است (${sp.price} دلار).`);
       this.render();
       return;                       // wait for buy / auction decision
     }
     if (ownerId === p.id) {
-      this.log(`${p.name} already owns ${sp.name}.`);
+      this.log(`${p.name} از قبل مالک «${sp.name}» است.`);
       this._afterLanding(); return;
     }
     if (this.mortgaged[index]) {
-      this.log(`${sp.name} is mortgaged — no rent due.`);
+      this.log(`«${sp.name}» در رهن است — اجاره‌ای ندارد.`);
       this._afterLanding(); return;
     }
     const rent = this.rentFor(index, diceTotal);
     const owner = this.players[ownerId];
-    this.log(`${p.name} pays $${rent} rent to ${owner.name} for ${sp.name}.`);
+    this.log(`${p.name} مبلغ ${rent} دلار اجارهٔ «${sp.name}» را به ${owner.name} داد.`);
     this.charge(p, rent, owner);
     this._afterLanding();
   }
@@ -288,7 +288,7 @@ class MonopolyGame {
       this.chestPtr = (this.chestPtr + 1) % this.chestDeck.length;
       card = CHEST[cardIdx];
     }
-    this.log(`${this.player.name} draws ${deck === 'chance' ? 'Chance' : 'Community Chest'}: “${card.text}”`);
+    this.log(`${this.player.name} کارت ${deck === 'chance' ? 'شانس' : 'صندوق مشترک'} کشید: «${card.text}»`);
     this.hooks.showCard(card, deck);
     this._applyCard(card);
   }
@@ -322,7 +322,7 @@ class MonopolyGame {
         return this._afterLanding();
       case 'money': {
         const amt = parseInt(raw, 10);
-        if (amt >= 0) { p.cash += amt; this.log(`${p.name} collects $${amt}.`); this.render(); }
+        if (amt >= 0) { p.cash += amt; this.log(`${p.name} مبلغ ${amt} دلار گرفت.`); this.render(); }
         else this.charge(p, -amt, null);
         return this._afterLanding();
       }
@@ -345,7 +345,7 @@ class MonopolyGame {
           }
         });
         const bill = houses * perHouse + hotels * perHotel;
-        this.log(`${p.name} owes $${bill} for repairs (${houses} houses, ${hotels} hotels).`);
+        this.log(`${p.name} باید ${bill} دلار بابت تعمیرات بپردازد (${houses} خانه، ${hotels} هتل).`);
         this.charge(p, bill, null);
         return this._afterLanding();
       }
@@ -356,7 +356,7 @@ class MonopolyGame {
     const from = p.position;
     if (goBonus && target < from) {
       p.cash += GO_SALARY;
-      this.log(`${p.name} passes GO and collects $${GO_SALARY}.`);
+      this.log(`${p.name} از «شروع» عبور کرد و ${GO_SALARY} دلار گرفت.`);
     }
     this.hooks.animateMove(p.id, from, target, () => {
       p.position = target;
@@ -370,7 +370,7 @@ class MonopolyGame {
         let rent;
         if (mult === 'railx2') rent = this.rentFor(target, 0) * 2;
         else rent = (this.dice[0] + this.dice[1]) * 10;
-        this.log(`${p.name} pays $${rent} to ${this.players[ownerId].name} for ${sp.name}.`);
+        this.log(`${p.name} مبلغ ${rent} دلار بابت «${sp.name}» به ${this.players[ownerId].name} داد.`);
         this.charge(p, rent, this.players[ownerId]);
         return this._afterLanding();
       }
@@ -393,10 +393,10 @@ class MonopolyGame {
     const index = this.pending.index;
     const sp = BOARD[index];
     const p = this.player;
-    if (p.cash < sp.price) { this.log(`${p.name} can't afford ${sp.name}.`); return; }
+    if (p.cash < sp.price) { this.log(`${p.name} توان خرید «${sp.name}» را ندارد.`); return; }
     p.cash -= sp.price;
     this.owner[index] = p.id;
-    this.log(`${p.name} buys ${sp.name} for $${sp.price}.`, 'buy');
+    this.log(`${p.name} «${sp.name}» را به ${sp.price} دلار خرید.`, 'buy');
     this.pending = null;
     this._afterLanding();
   }
@@ -417,7 +417,7 @@ class MonopolyGame {
       bid: 0, highBidder: null,
       contenders, turn: 0, passed: new Set(),
     };
-    this.log(`Auction for ${sp.name} begins (min bid $10).`, 'auction');
+    this.log(`حراج «${sp.name}» شروع شد (حداقل پیشنهاد ۱۰ دلار).`, 'auction');
     this.render();
     this._auctionMaybeAI();
   }
@@ -429,7 +429,7 @@ class MonopolyGame {
     if (a.passed.has(playerId) || p.bankrupt) return;
     if (amount <= a.bid || amount > p.cash) return;
     a.bid = amount; a.highBidder = playerId;
-    this.log(`${p.name} bids $${amount}.`, 'auction');
+    this.log(`${p.name} پیشنهاد ${amount} دلار داد.`, 'auction');
     this._auctionNext();
   }
 
@@ -437,7 +437,7 @@ class MonopolyGame {
     const a = this.pending;
     if (!a || a.type !== 'auction') return;
     a.passed.add(playerId);
-    this.log(`${this.players[playerId].name} passes.`, 'auction');
+    this.log(`${this.players[playerId].name} انصراف داد.`, 'auction');
     this._auctionNext();
   }
 
@@ -459,9 +459,9 @@ class MonopolyGame {
       const p = this.players[a.highBidder];
       p.cash -= a.bid;
       this.owner[index] = p.id;
-      this.log(`${p.name} wins ${BOARD[index].name} for $${a.bid}.`, 'auction');
+      this.log(`${p.name} «${BOARD[index].name}» را با ${a.bid} دلار برد.`, 'auction');
     } else {
-      this.log(`No bids — ${BOARD[index].name} stays with the bank.`, 'auction');
+      this.log(`پیشنهادی نبود — «${BOARD[index].name}» نزد بانک ماند.`, 'auction');
     }
     this.pending = null;
     this._afterLanding();
@@ -515,11 +515,11 @@ class MonopolyGame {
       this.houses[index] = 5;
       this.housesLeft += 4;          // 4 houses return to the bank
       this.hotelsLeft -= 1;
-      this.log(`${p.name} builds a hotel on ${sp.name}.`, 'build');
+      this.log(`${p.name} روی «${sp.name}» هتل ساخت.`, 'build');
     } else {
       this.houses[index]++;
       this.housesLeft -= 1;
-      this.log(`${p.name} builds a house on ${sp.name} (now ${this.houses[index]}).`, 'build');
+      this.log(`${p.name} روی «${sp.name}» خانه ساخت (اکنون ${this.houses[index]}).`, 'build');
     }
     this.render();
   }
@@ -546,11 +546,11 @@ class MonopolyGame {
       this.houses[index] = 4;
       this.hotelsLeft += 1;
       this.housesLeft -= 4;
-      this.log(`${p.name} sells the hotel on ${sp.name} for $${refund}.`, 'build');
+      this.log(`${p.name} هتل «${sp.name}» را به ${refund} دلار فروخت.`, 'build');
     } else {
       this.houses[index]--;
       this.housesLeft += 1;
-      this.log(`${p.name} sells a house on ${sp.name} for $${refund}.`, 'build');
+      this.log(`${p.name} یک خانه از «${sp.name}» را به ${refund} دلار فروخت.`, 'build');
     }
     this.render();
   }
@@ -566,7 +566,7 @@ class MonopolyGame {
     const p = this.player;
     p.cash += BOARD[index].mortgage;
     this.mortgaged[index] = true;
-    this.log(`${p.name} mortgages ${BOARD[index].name} for $${BOARD[index].mortgage}.`);
+    this.log(`${p.name} «${BOARD[index].name}» را به ${BOARD[index].mortgage} دلار رهن گذاشت.`);
     this.render();
   }
   canUnmortgage(index) {
@@ -579,7 +579,7 @@ class MonopolyGame {
     const cost = Math.ceil(BOARD[index].mortgage * 1.1);
     p.cash -= cost;
     this.mortgaged[index] = false;
-    this.log(`${p.name} lifts the mortgage on ${BOARD[index].name} for $${cost}.`);
+    this.log(`${p.name} رهن «${BOARD[index].name}» را با ${cost} دلار آزاد کرد.`);
     this.render();
   }
 
@@ -610,7 +610,7 @@ class MonopolyGame {
     }
     // Human: open debt panel.
     this.pending = { type: 'debt', amount, creditorId: creditor ? creditor.id : null };
-    this.log(`${player.name} owes $${amount} but only has $${player.cash}. Raise funds or go bankrupt.`, 'warn');
+    this.log(`${player.name} باید ${amount} دلار بپردازد اما فقط ${player.cash} دلار دارد. پول جمع کن یا ورشکست شو.`, 'warn');
     this.render();
     return false;
   }
@@ -623,7 +623,7 @@ class MonopolyGame {
     if (p.cash < d.amount) return;
     p.cash -= d.amount;
     if (d.creditorId !== null) this.players[d.creditorId].cash += d.amount;
-    this.log(`${p.name} settles the $${d.amount} debt.`);
+    this.log(`${p.name} بدهی ${d.amount} دلاری را تسویه کرد.`);
     this.pending = null;
     this._afterLanding();
   }
@@ -637,7 +637,7 @@ class MonopolyGame {
 
   _bankrupt(player, creditor) {
     player.bankrupt = true;
-    this.log(`💀 ${player.name} is bankrupt!`, 'warn');
+    this.log(`💀 ${player.name} ورشکست شد!`, 'warn');
     // Hand assets to creditor, or auction back to the bank.
     BOARD.forEach((sp, i) => {
       if (this.owner[i] !== player.id) return;
@@ -682,7 +682,7 @@ class MonopolyGame {
     p.inJail = true;
     p.jailTurns = 0;
     this.doubles = 0;
-    this.log(`🚔 ${p.name} is sent to Jail.`, 'warn');
+    this.log(`🚔 ${p.name} به زندان فرستاده شد.`, 'warn');
     this.render();
   }
 
@@ -709,14 +709,14 @@ class MonopolyGame {
     return true;
   }
   executeTrade(offer) {
-    if (!this.tradeValid(offer)) { this.log('Trade is invalid.', 'warn'); this.pending = null; this.render(); return; }
+    if (!this.tradeValid(offer)) { this.log('معامله نامعتبر است.', 'warn'); this.pending = null; this.render(); return; }
     const from = this.players[offer.fromId];
     const to = this.players[offer.toId];
     from.cash -= offer.give.cash; to.cash += offer.give.cash;
     to.cash -= offer.get.cash; from.cash += offer.get.cash;
     offer.give.props.forEach(i => this.owner[i] = to.id);
     offer.get.props.forEach(i => this.owner[i] = from.id);
-    this.log(`🤝 ${from.name} and ${to.name} complete a trade.`, 'buy');
+    this.log(`🤝 ${from.name} و ${to.name} معامله را انجام دادند.`, 'buy');
     this.pending = null;
     this.render();
   }
@@ -735,7 +735,7 @@ class MonopolyGame {
     if (!force && this.lastRollWasDoubles && !p.inJail && this.doubles > 0 && this.doubles < 3) {
       this.phase = 'preroll';
       this.lastRollWasDoubles = false;
-      this.log(`${p.name} rolled doubles — rolls again.`);
+      this.log(`${p.name} جفت آورد — دوباره تاس می‌اندازد.`);
       this.render();
       return;
     }
@@ -746,7 +746,7 @@ class MonopolyGame {
       this.current = (this.current + 1) % this.players.length;
     } while (this.players[this.current].bankrupt);
     this.phase = 'preroll';
-    this.log(`— ${this.player.name}'s turn —`);
+    this.log(`— نوبت ${this.player.name} —`);
     this.render();
   }
 

@@ -1,60 +1,67 @@
-# 🎩 Monopoly — Web Edition
+# 🎩 مونوپولی — نسخهٔ وب (فارسی)
 
-A complete, browser-based Monopoly game built with **vanilla HTML, CSS and
-JavaScript** — no build step, no dependencies. Just open `index.html`.
+یک بازی کامل مونوپولی مبتنی بر مرورگر، ساخته‌شده با **HTML، CSS و JavaScript خالص** —
+بدون هیچ مرحلهٔ build و بدون وابستگی. کافی است `index.html` را باز کنی.
 
-![preview](preview.png)
+رابط کاربری کاملاً **فارسی و راست‌به‌چپ (RTL)** است.
 
-## ▶ Play
+![پیش‌نمایش](preview.png)
+
+## ▶ اجرا
 
 ```bash
-# any static server works, e.g.:
+# هر سرور استاتیکی کار می‌کند، مثلاً:
 cd monopoly
 python3 -m http.server 8000
-# then open http://localhost:8000
+# سپس http://localhost:8000 را باز کن
 ```
 
-Or simply double-click `index.html` to open it in your browser.
+یا به‌سادگی روی `index.html` دوبار کلیک کن تا در مرورگر باز شود.
 
-## ✨ Features — the full rule set
+## ✨ امکانات — مجموعهٔ کامل قواعد
 
-- **40-space classic US board** with all properties, railroads and utilities.
-- **2–6 players**, any mix of **humans (hot-seat)** and **computer (AI)** players.
-- **Dice & movement** with doubles (roll again; three doubles → Jail).
-- **Buy or auction** every unowned property you land on.
-- **Rent** for properties, railroads (scaled by count) and utilities (dice ×4 / ×10).
-- **Monopolies** double the base rent and unlock building.
-- **Houses & hotels** with even-building rules and a limited bank supply (32 houses, 12 hotels).
-- **Mortgaging & redeeming** (with the 10% interest on redemption).
-- **Chance & Community Chest** — all 16 + 16 cards, including *Get Out of Jail Free*.
-- **Jail** — pay $50 bail, use a card, or roll for doubles (3-turn limit).
-- **Income Tax ($200)** and **Luxury Tax ($100)**.
-- **Pass GO → collect $200.**
-- **Player-to-player trading** — swap properties and cash, with AI acceptance logic.
-- **Debt resolution** — raise funds by selling buildings / mortgaging, or go **bankrupt**.
-- **Win condition** — last solvent tycoon standing.
+- **تختهٔ کلاسیک ۴۰ خانه‌ای** با تمام املاک، راه‌آهن‌ها و شرکت‌های خدماتی.
+- **۲ تا ۶ بازیکن**، ترکیب دلخواه از **انسان (روی یک صفحه)** و **کامپیوتر (هوش مصنوعی)**.
+- **تاس و حرکت** با قانون جفت (دوباره بینداز؛ سه جفت پشت‌سرهم → زندان).
+- **خرید یا حراج** هر ملکِ بدون مالک که روی آن فرود می‌آیی.
+- **اجاره** برای املاک، راه‌آهن‌ها (بر اساس تعداد) و شرکت‌های خدماتی (تاس ×۴ / ×۱۰).
+- **انحصار** اجارهٔ پایه را دو برابر می‌کند و ساخت‌وساز را باز می‌کند.
+- **خانه و هتل** با قانون ساخت یکنواخت و محدودیت موجودی بانک (۳۲ خانه، ۱۲ هتل).
+- **رهن و آزادسازی** (با ۱۰٪ بهره هنگام آزادسازی).
+- **شانس و صندوق مشترک** — هر ۱۶ + ۱۶ کارت، از جمله «آزادی از زندان».
+- **زندان** — وثیقهٔ ۵۰ دلار، استفاده از کارت، یا تلاش برای جفت (حداکثر ۳ نوبت).
+- **مالیات بر درآمد (۲۰۰ دلار)** و **مالیات تجملات (۱۰۰ دلار)**.
+- **عبور از «شروع» ← ۲۰۰ دلار.**
+- **معاملهٔ بین بازیکنان** — تبادل ملک و پول، همراه با منطق پذیرش هوش مصنوعی.
+- **تسویهٔ بدهی** — با فروش ساختمان‌ها / رهن املاک پول جمع کن، یا **ورشکست** شو.
+- **شرط برد** — آخرین سرمایه‌دارِ ورنشکستهٔ باقی‌مانده.
 
-## 🏗 Architecture
+## 🏗 معماری
 
-The code is split into a UI-agnostic rules engine and a renderer:
+کد به یک موتور قواعدِ مستقل از رابط و یک رندرکننده تقسیم شده است:
 
-| File | Responsibility |
-|------|----------------|
-| `js/data.js` | Static data: board spaces, prices, rents, the 32 cards, tokens. |
-| `js/game.js` | `MonopolyGame` — the rules engine and state machine (no DOM). |
-| `js/ui.js`   | `UI` — board rendering, animated tokens, panels, dice, modals. |
-| `js/main.js` | `Controller` — setup screen, wiring, and the computer-player driver. |
-| `css/style.css` | All styling — the classic felt board, tiles, panels and modals. |
+| فایل | مسئولیت |
+|------|---------|
+| `js/data.js` | دادهٔ ثابت: خانه‌های تخته، قیمت‌ها، اجاره‌ها، ۳۲ کارت، مهره‌ها. |
+| `js/game.js` | `MonopolyGame` — موتور قواعد و ماشین حالت (بدون DOM). |
+| `js/ui.js`   | `UI` — رندر تخته، مهره‌های متحرک، پنل‌ها، تاس، مودال‌ها. |
+| `js/main.js` | `Controller` — صفحهٔ شروع، اتصال‌ها و رانندهٔ بازیکن کامپیوتری. |
+| `css/style.css` | تمام استایل — تختهٔ نمدی کلاسیک، خانه‌ها، پنل‌ها و مودال‌ها. |
 
-The engine exposes its state and a small set of methods; the UI/AI controller
-reads `game.pending` to know which decision is currently open and drives turns
-by calling public methods. Engine ↔ UI communicate only through a handful of
-hooks (`render`, `log`, `showCard`, `animateMove`, `gameOver`), so the rules
-are fully testable headless.
+موتور، حالت و مجموعه‌ای کوچک از متدها را در دسترس می‌گذارد؛ کنترلر رابط/هوش مصنوعی
+مقدار `game.pending` را می‌خواند تا بداند کدام تصمیم باز است و با فراخوانی متدها نوبت‌ها
+را پیش می‌برد. ارتباط موتور و رابط فقط از طریق چند قلاب
+(`render`، `log`، `showCard`، `animateMove`، `gameOver`) انجام می‌شود، بنابراین قواعد
+به‌طور کامل و بدون مرورگر قابل تست هستند.
 
-## 🤖 Computer players
+## 🤖 بازیکنان کامپیوتری
 
-AI opponents buy sensibly (keeping a cash cushion, prioritising sets that
-complete a monopoly), build evenly on monopolies when flush, bid in auctions up
-to ~125% of list price, handle Jail, liquidate assets under debt, and evaluate
-incoming trade offers by value.
+حریفان هوش مصنوعی منطقی خرید می‌کنند (با حفظ ذخیرهٔ نقدی، اولویت به ست‌هایی که انحصار
+را کامل می‌کنند)، هنگام داشتن پول روی انحصارها یکنواخت می‌سازند، در حراج‌ها تا حدود ۱۲۵٪
+قیمت پیشنهاد می‌دهند، زندان را مدیریت می‌کنند، زیر فشار بدهی دارایی نقد می‌کنند و
+پیشنهادهای معاملهٔ ورودی را بر اساس ارزش ارزیابی می‌کنند.
+
+---
+
+> نسخهٔ انگلیسی این بازی پیش‌تر در همین مخزن توسعه یافته بود؛ این نسخه ترجمهٔ کامل
+> فارسی با چیدمان راست‌به‌چپ است.
