@@ -29,6 +29,12 @@ const Controller = {
       <div class="setup-card">
         <div class="setup-brand">مونوپولی</div>
         <p class="setup-sub">بازی کلاسیک خرید و فروش املاک · با تمام قواعد</p>
+        <div class="setup-city">
+          <label>🏙️ در کدام شهر ایران بازی می‌کنی؟</label>
+          <select id="city-select">
+            ${Object.keys(CITIES).map(k => `<option value="${k}">${CITIES[k].label}</option>`).join('')}
+          </select>
+        </div>
         <div class="setup-players">${rows.join('')}</div>
         <button class="act primary big" id="start-btn">▶ شروع بازی</button>
         <details class="rules-peek"><summary>راهنما / قواعد گنجانده‌شده</summary>
@@ -62,6 +68,11 @@ const Controller = {
     });
     if (cfgs.length < 2) { alert('حداقل به ۲ بازیکن نیاز است.'); return; }
 
+    // apply the chosen city's neighbourhood names + landmarks
+    const cityKey = document.getElementById('city-select').value;
+    applyCity(cityKey);
+    UI.cityKey = cityKey;
+
     document.getElementById('setup').style.display = 'none';
     document.getElementById('game').style.display = 'grid';
     UI.grabRefs();   // wire log target before the game constructor logs
@@ -90,9 +101,9 @@ const Controller = {
 
   /* ---- human actions --------------------------------------------------- */
   humanRoll() {
-    UI.pendingDiceAnim = true;
     this.game.rollDice();
     UI.render();
+    UI.rollDiceAnimation();
   },
 
   submitTrade(offer) {
@@ -128,9 +139,9 @@ const Controller = {
     if (g.phase === 'preroll') {
       if (p.inJail) return this.aiJail();
       this.aiBuild();
-      UI.pendingDiceAnim = true;
       this.game.rollDice();
       UI.render();
+      UI.rollDiceAnimation();
     } else if (g.phase === 'postroll') {
       this.aiBuild();
       this.game.endTurn();
@@ -146,9 +157,9 @@ const Controller = {
     UI.render();
     if (!p.inJail) { this.aiBuild(); }
     // roll (either to move after paying, or to try doubles)
-    UI.pendingDiceAnim = true;
     g.rollDice();
     UI.render();
+    UI.rollDiceAnimation();
   },
 
   aiBuy() {

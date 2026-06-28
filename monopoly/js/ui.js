@@ -10,7 +10,8 @@ const UI = {
   tileEls: [],
   tileCenters: [],
   tokenEls: {},
-  pendingDiceAnim: false,
+  cityKey: 'tehran',
+  _diceIv: null,
 
   /* ---- board grid geometry -------------------------------------------- */
   cellOf(i) {
@@ -41,6 +42,7 @@ const UI = {
     this.grabRefs();
     this.buildBoard();
     this.buildTokens();
+    this.buildDiceBox();
     window.addEventListener('resize', () => { this.measure(); this.renderTokens(); });
     requestAnimationFrame(() => { this.measure(); this.renderTokens(); });
   },
@@ -90,7 +92,7 @@ const UI = {
   },
 
   tileInner(sp, i) {
-    const utilIcon = sp.name === 'آبفای تهران' ? '🚰' : '💡';
+    const utilIcon = (i === 28) ? '🚰' : '💡';   // index 28 is always the water utility
     if (sp.type === 'go') return `<div class="corner-label">۲۰۰ دلار<br>بگیر<br><span class="big">شروع</span></div>`;
     if (sp.type === 'jail') return `<div class="corner-label"><span class="big">🔒</span><br>زندان<br>بازدید</div>`;
     if (sp.type === 'freeparking') return `<div class="corner-label">پارکینگ<br><span class="big">🅿️</span><br>رایگان</div>`;
@@ -256,62 +258,90 @@ const UI = {
 
   renderCenter() {
     const g = this.game;
-    const [d1, d2] = g.dice;
     const tk = TOKENS.find(t => t.id === g.player.token);
+    const city = CITIES[this.cityKey] || CITIES.tehran;
     this.el.center.innerHTML = `
+      <div class="city-scene">${this.cityScene(this.cityKey)}</div>
       <div class="brand">مونوپولی</div>
+      <div class="city-name">${city.label}</div>
       <div class="turn-banner" style="--accent:${tk.color}">
         <span class="tb-token">${tk.emoji}</span>
         <span>نوبت ${g.player.name}</span>
       </div>
-      <div class="dice" id="dice"></div>
+      <div id="dice-slot"></div>
       <div class="bank-note">🏦 خانهٔ باقی‌مانده: ${g.housesLeft} · هتل باقی‌مانده: ${g.hotelsLeft}</div>
       <div id="action-bar"></div>`;
     this.el.actions = document.getElementById('action-bar');
-    this.renderDice(this.pendingDiceAnim);
-    this.pendingDiceAnim = false;
+    // re-attach the persistent dice box (survives re-renders so a roll
+    // animation in progress is never wiped) and sync its faces
+    const slot = document.getElementById('dice-slot');
+    if (slot && this.el.diceBox) slot.appendChild(this.el.diceBox);
+    this.renderDice();
   },
 
-  /* ---- 3D dice -------------------------------------------------------- */
+  /* ---- dice ----------------------------------------------------------- */
   pipCells(n) {
     const pips = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] }[n] || [];
     let c = '';
     for (let k = 0; k < 9; k++) c += `<i class="${pips.includes(k) ? 'on' : ''}"></i>`;
     return c;
   },
-  die3dHTML() {
-    let faces = '';
-    for (let v = 1; v <= 6; v++) faces += `<div class="face f${v}">${this.pipCells(v)}</div>`;
-    return `<div class="die3d"><div class="die3d-cube">${faces}</div></div>`;
+  buildDiceBox() {
+    this.el.diceBox = document.createElement('div');
+    this.el.diceBox.className = 'dice';
+    this.el.diceBox.innerHTML =
+      '<div class="die2d"><div class="pips"></div></div>' +
+      '<div class="die2d"><div class="pips"></div></div>';
   },
-  // rotation (deg) that brings face `v` to the front; small tilt keeps it 3D.
-  baseRot(v) {
-    const m = { 1:{x:0,y:0}, 2:{x:0,y:-90}, 3:{x:-90,y:0}, 4:{x:90,y:0}, 5:{x:0,y:90}, 6:{x:-180,y:0} }[v];
-    return { x: m.x - 16, y: m.y + 16 };
+
+  /* ---- city centre scene: iconic landmark silhouettes ----------------- */
+  LANDMARKS: {
+    milad: `<svg class="lm" viewBox="0 0 60 150"><line x1="30" y1="2" x2="30" y2="52" stroke="#4a4a4a" stroke-width="3"/><ellipse cx="30" cy="60" rx="15" ry="10" fill="#5a5a5a"/><path d="M27 70 L24 148 L36 148 L33 70 Z" fill="#6a6a6a"/><path d="M16 148 L44 148 L40 140 L20 140 Z" fill="#7a7a7a"/></svg>`,
+    azadi: `<svg class="lm" viewBox="0 0 130 150"><path d="M8 148 C28 78 48 36 65 8 C82 36 102 78 122 148 L98 148 C86 100 76 70 65 50 C54 70 44 100 32 148 Z" fill="#5a5a5a"/><rect x="42" y="132" width="46" height="16" fill="#6a6a6a"/></svg>`,
+    dome: `<svg class="lm" viewBox="0 0 150 150"><line x1="22" y1="22" x2="22" y2="146" stroke="#6a6a6a" stroke-width="7"/><circle cx="22" cy="16" r="6" fill="#6a6a6a"/><line x1="128" y1="22" x2="128" y2="146" stroke="#6a6a6a" stroke-width="7"/><circle cx="128" cy="16" r="6" fill="#6a6a6a"/><path d="M75 36 C50 60 50 110 75 132 C100 110 100 60 75 36 Z" fill="#4f8fbf"/><line x1="75" y1="36" x2="75" y2="18" stroke="#6a6a6a" stroke-width="3"/><circle cx="75" cy="15" r="4" fill="#6a6a6a"/><rect x="46" y="132" width="58" height="14" fill="#6a6a6a"/></svg>`,
+    bridge: `<svg class="lm wide" viewBox="0 0 200 80"><rect x="0" y="26" width="200" height="9" fill="#5a5a5a"/><rect x="0" y="35" width="200" height="34" fill="#6a6a6a"/><g fill="#cfe8d6">${[12,40,68,96,124,152,180].map(x=>`<path d="M${x} 69 q12 -22 24 0 Z"/>`).join('')}</g></svg>`,
+    columns: `<svg class="lm" viewBox="0 0 160 140"><rect x="6" y="128" width="148" height="10" fill="#7a7a7a"/><rect x="2" y="14" width="156" height="10" fill="#6a6a6a"/><g fill="#5a5a5a"><rect x="20" y="24" width="11" height="104"/><rect x="56" y="24" width="11" height="104"/><rect x="92" y="24" width="11" height="104"/><rect x="128" y="24" width="11" height="104"/></g></svg>`,
+    gate: `<svg class="lm" viewBox="0 0 130 140"><path d="M14 138 L14 56 C14 22 116 22 116 56 L116 138 L96 138 L96 58 C96 38 34 38 34 58 L34 138 Z" fill="#5a5a5a"/><rect x="8" y="46" width="114" height="9" fill="#6a6a6a"/></svg>`,
+    shrine: `<svg class="lm" viewBox="0 0 140 150"><line x1="112" y1="14" x2="112" y2="146" stroke="#c79a2e" stroke-width="7"/><circle cx="112" cy="9" r="5" fill="#c79a2e"/><path d="M58 146 C30 116 30 64 58 44 C86 64 86 116 58 146 Z" fill="#d4af37"/><line x1="58" y1="44" x2="58" y2="22" stroke="#c79a2e" stroke-width="3"/><circle cx="58" cy="18" r="4" fill="#c79a2e"/><rect x="34" y="136" width="52" height="12" fill="#6a6a6a"/></svg>`,
+    bluemosque: `<svg class="lm" viewBox="0 0 130 150"><rect x="22" y="22" width="86" height="126" fill="#2f5d8c"/><rect x="18" y="14" width="94" height="12" fill="#234a73"/><path d="M44 148 L44 82 C44 54 86 54 86 82 L86 148 Z" fill="#cfe8d6"/><circle cx="65" cy="40" r="9" fill="#7fb3d5"/></svg>`,
+    elgoli: `<svg class="lm wide" viewBox="0 0 170 110"><rect x="0" y="86" width="170" height="24" fill="#7fb3d5"/><rect x="66" y="44" width="38" height="44" fill="#6a6a6a"/><path d="M58 46 L85 20 L112 46 Z" fill="#5a5a5a"/><rect x="80" y="60" width="10" height="28" fill="#4a4a4a"/></svg>`,
   },
-  renderDice(animate) {
-    const host = document.getElementById('dice');
-    if (!host) return;
-    let [d1, d2] = this.game.dice;
-    d1 = d1 || 1; d2 = d2 || 1;
-    host.innerHTML = this.die3dHTML() + this.die3dHTML();
-    const cubes = host.querySelectorAll('.die3d-cube');
-    const place = (cube, v, spin) => {
-      const b = this.baseRot(v);
-      const rest = `rotateX(${b.x}deg) rotateY(${b.y}deg)`;
-      if (animate) {
-        cube.style.transition = 'none';
-        cube.style.transform = rest;
-        void cube.offsetWidth;                       // force reflow so the spin animates
-        cube.style.transition = '';
-        cube.style.transform = `rotateX(${b.x + spin}deg) rotateY(${b.y + spin}deg)`;
-      } else {
-        cube.style.transition = 'none';
-        cube.style.transform = rest;
+  cityScene(key) {
+    const city = CITIES[key] || CITIES.tehran;
+    const lms = city.landmarks.map(k => this.LANDMARKS[k] || '').join('');
+    return `<div class="scene-sun"></div><div class="scene-lms">${lms}</div>`;
+  },
+  setDie(el, v) { el.querySelector('.pips').innerHTML = this.pipCells(v); el.dataset.v = v; },
+  // sync faces to the current values (skips while an animation is running)
+  renderDice() {
+    const box = this.el.diceBox;
+    if (!box || this._diceIv) return;
+    const dice = box.querySelectorAll('.die2d');
+    this.setDie(dice[0], this.game.dice[0] || 1);
+    this.setDie(dice[1], this.game.dice[1] || 1);
+  },
+  // satisfying shake + face-flicker, then a bouncy landing on the rolled value
+  rollDiceAnimation() {
+    const box = this.el.diceBox;
+    if (!box) return;
+    const dice = box.querySelectorAll('.die2d');
+    const final = [this.game.dice[0] || 1, this.game.dice[1] || 1];
+    if (this._diceIv) clearInterval(this._diceIv);
+    dice.forEach(el => { el.classList.remove('landed'); el.classList.add('rolling'); });
+    let ticks = 0;
+    this._diceIv = setInterval(() => {
+      if (++ticks >= 9) {
+        clearInterval(this._diceIv); this._diceIv = null;
+        this.setDie(dice[0], final[0]); this.setDie(dice[1], final[1]);
+        dice.forEach(el => {
+          el.classList.remove('rolling'); el.classList.add('landed');
+          setTimeout(() => el.classList.remove('landed'), 450);
+        });
+        return;
       }
-    };
-    place(cubes[0], d1, 720);
-    place(cubes[1], d2, 1080);
+      this.setDie(dice[0], 1 + Math.floor(Math.random() * 6));
+      this.setDie(dice[1], 1 + Math.floor(Math.random() * 6));
+    }, 55);
   },
 
   /* ---- action bar (depends on phase / pending) ------------------------- */

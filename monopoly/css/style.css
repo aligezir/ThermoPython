@@ -30,7 +30,11 @@ h1,h2,h3{margin:0 0 .4em}
   color:#c0392b;text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,.15);
 }
 .setup-sub{color:#667;margin:6px 0 22px}
-.setup-players{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;text-align:left}
+.setup-city{display:flex;align-items:center;gap:10px;justify-content:space-between;background:#eef7f1;
+  border:1px solid #cfe7d8;border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:right}
+.setup-city label{font-weight:700;color:#2c3e50;font-size:14px}
+.setup-city select{padding:8px 12px;border:1px solid #cfd6d2;border-radius:8px;background:#fff;font-size:15px;font-weight:700;font-family:inherit}
+.setup-players{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;text-align:right}
 .setup-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);padding:8px 12px;border-radius:12px;transition:.2s}
 .setup-row.off{opacity:.4}
 .setup-row .p-token{font-size:24px;width:30px;text-align:center}
@@ -89,7 +93,7 @@ h1,h2,h3{margin:0 0 .4em}
 .edge-right  .tile-color{left:0;top:0;bottom:0;width:20%;border-right:1px solid #0007}
 
 .tile-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:3px;gap:2px}
+  text-align:center;padding:3px;gap:2px;direction:rtl}     /* Persian names read right-to-left */
 /* names stay upright (player's reading view) on every edge */
 .edge-bottom .tile-body{padding-top:20%}
 .edge-top    .tile-body{padding-bottom:20%}
@@ -99,7 +103,7 @@ h1,h2,h3{margin:0 0 .4em}
 .t-name{font-size:9px;font-weight:700;line-height:1.05;letter-spacing:-.2px}
 .t-price{font-size:9px;font-weight:600;color:#2c3e50}
 .t-ic{font-size:18px}
-.corner-label{font-size:9px;font-weight:800;line-height:1.15;text-align:center;color:#1c2b22}
+.corner-label{font-size:9px;font-weight:800;line-height:1.15;text-align:center;color:#1c2b22;direction:rtl}
 .corner-label .big{font-size:22px}
 .type-go .corner-label{color:#c0392b}
 .type-go{background:linear-gradient(135deg,#ffe9a8,#ffd24d)}
@@ -138,29 +142,48 @@ h1,h2,h3{margin:0 0 .4em}
   border:2px solid #0d3b2233;margin:4px;border-radius:6px;padding:16px;text-align:center;
 }
 .brand{
-  font-family:'Vazirmatn',sans-serif;font-weight:800;font-size:clamp(26px,5.5vmin,54px);color:#c0392b;
+  position:relative;z-index:1;
+  font-family:'Vazirmatn',sans-serif;font-weight:800;font-size:clamp(24px,5vmin,48px);color:#c0392b;
   transform:rotate(-6deg);text-shadow:2px 2px 0 #fff,4px 4px 0 rgba(0,0,0,.18);letter-spacing:1px;
 }
+.city-name{position:relative;z-index:1;font-family:'Vazirmatn',sans-serif;font-weight:800;
+  font-size:clamp(20px,4.4vmin,40px);color:#13402b;margin-top:-6px;letter-spacing:1px;
+  text-shadow:1px 1px 0 #fff}
+
+/* themed city centrepiece — iconic landmark silhouettes washed behind the
+   brand/dice, like a hand-painted board */
+.city-scene{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.city-scene .scene-sun{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);
+  width:38%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#fff3c4 0%,#ffe79a 52%,rgba(255,231,154,0) 70%);opacity:.85}
+.city-scene .scene-lms{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);
+  display:flex;align-items:flex-end;justify-content:center;gap:6%;width:88%;opacity:.4}
+.city-scene .lm{height:min(40vmin,300px);width:auto;max-width:44%;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.12))}
+.city-scene .lm.wide{max-width:54%}
 .turn-banner{display:flex;align-items:center;gap:8px;background:var(--accent,#333);color:#fff;
   padding:8px 16px;border-radius:30px;font-weight:700;box-shadow:var(--shadow);font-size:clamp(12px,2.4vmin,17px)}
 .tb-token{font-size:20px}
-/* ---- 3D dice -------------------------------------------------------- */
-.dice{display:flex;gap:24px;perspective:700px;padding:8px 0}
-.die3d{--d:clamp(40px,8vmin,58px);width:var(--d);height:var(--d);position:relative}
-.die3d-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;
-  transition:transform .9s cubic-bezier(.18,.7,.2,1);transform:rotateX(-20deg) rotateY(20deg)}
-.die3d .face{position:absolute;inset:0;border-radius:16%;
-  background:linear-gradient(145deg,#ffffff,#e6ece6);
-  box-shadow:inset 0 0 0 2px #ccd4cc, inset 0 6px 10px rgba(255,255,255,.6);
-  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:13%}
-.die3d .face i{width:100%;aspect-ratio:1;border-radius:50%;margin:auto;background:transparent}
-.die3d .face i.on{background:radial-gradient(circle at 35% 30%,#5a5a5a,#111);box-shadow:0 1px 1px rgba(0,0,0,.4)}
-.die3d .f1{transform:translateZ(calc(var(--d)/2))}
-.die3d .f6{transform:rotateY(180deg) translateZ(calc(var(--d)/2))}
-.die3d .f2{transform:rotateY(90deg)  translateZ(calc(var(--d)/2))}
-.die3d .f5{transform:rotateY(-90deg) translateZ(calc(var(--d)/2))}
-.die3d .f3{transform:rotateX(90deg)  translateZ(calc(var(--d)/2))}
-.die3d .f4{transform:rotateX(-90deg) translateZ(calc(var(--d)/2))}
+/* ---- dice ----------------------------------------------------------- */
+.dice{display:flex;gap:22px;padding:6px 0;perspective:500px}
+.die2d{width:clamp(42px,8.5vmin,60px);aspect-ratio:1;border-radius:24%;
+  background:linear-gradient(145deg,#ffffff 0%,#eef2ee 55%,#dde4dd 100%);
+  box-shadow:0 7px 16px rgba(0,0,0,.32),inset 0 2px 3px rgba(255,255,255,.9),inset 0 -4px 7px rgba(0,0,0,.13);
+  display:grid;place-items:center;padding:13%}
+.die2d .pips{width:100%;height:100%;display:grid;
+  grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.die2d .pips i{width:64%;aspect-ratio:1;border-radius:50%;margin:auto;background:transparent}
+.die2d .pips i.on{background:radial-gradient(circle at 36% 30%,#5b5b5b,#0b0b0b);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 1px 1px rgba(0,0,0,.45)}
+.die2d.rolling{animation:diceShake .5s linear infinite}
+@keyframes diceShake{
+  0%{transform:translateY(0) rotate(-13deg)}
+  25%{transform:translateY(-9px) rotate(9deg)}
+  50%{transform:translateY(0) rotate(15deg)}
+  75%{transform:translateY(-6px) rotate(-7deg)}
+  100%{transform:translateY(0) rotate(-13deg)}}
+.die2d.landed{animation:diceLand .45s cubic-bezier(.2,1.6,.35,1)}
+@keyframes diceLand{0%{transform:scale(1.28) rotate(6deg)}55%{transform:scale(.9)}100%{transform:scale(1)}}
 .bank-note{font-size:12px;color:#34503f;font-weight:600}
 
 #action-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}

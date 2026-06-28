@@ -148,3 +148,66 @@ const JAIL_INDEX = 10;
 const JAIL_FINE = 50;
 const MAX_HOUSES = 32;   // bank supply
 const MAX_HOTELS = 12;   // bank supply
+
+/* ============================================================================
+ * Cities — the player picks an Iranian city at the start and the 22 property
+ * spaces, 4 transport hubs and 2 utilities are renamed to that city's
+ * neighbourhoods. `landmarks` keys drive the themed centre-of-board scene.
+ * Names are ordered cheap → premium to mirror the board's price ladder.
+ * ==========================================================================*/
+const PROP_INDICES = [1, 3, 6, 8, 9, 11, 13, 14, 16, 18, 19, 21, 23, 24, 26, 27, 29, 31, 32, 34, 37, 39];
+const RAIL_INDICES = [5, 15, 25, 35];
+const UTIL_INDICES = [12, 28];           // 12 = power, 28 = water
+
+const CITIES = {
+  tehran: {
+    label: 'تهران',
+    props: ['نازی‌آباد', 'شوش', 'مولوی', 'پیروزی', 'نارمک', 'تهرانپارس', 'رسالت', 'مجیدیه', 'گیشا', 'یوسف‌آباد', 'امیرآباد', 'انقلاب', 'ولیعصر', 'هفت‌تیر', 'ونک', 'پاسداران', 'سعادت‌آباد', 'شهرک غرب', 'فرشته', 'الهیه', 'زعفرانیه', 'نیاوران'],
+    rails: ['راه‌آهن تهران', 'ترمینال جنوب', 'ترمینال غرب', 'فرودگاه مهرآباد'],
+    utils: ['شرکت برق', 'آب و فاضلاب'],
+    landmarks: ['milad', 'azadi'],
+  },
+  esfahan: {
+    label: 'اصفهان',
+    props: ['زینبیه', 'دارک', 'ملک‌شهر', 'خانه اصفهان', 'رهنان', 'جی', 'احمدآباد', 'هزارجریب', 'عباس‌آباد', 'کاوه', 'بزرگمهر', 'شیخ صدوق', 'وحید', 'ارتش', 'مشتاق', 'مرداویج', 'خواجو', 'جلفا', 'چهارباغ', 'سعادت‌آباد', 'آبشار', 'ملاصدرا'],
+    rails: ['راه‌آهن اصفهان', 'ترمینال کاوه', 'ترمینال صفه', 'فرودگاه شهید بهشتی'],
+    utils: ['برق منطقه‌ای', 'آبفای اصفهان'],
+    landmarks: ['dome', 'bridge'],
+  },
+  shiraz: {
+    label: 'شیراز',
+    props: ['دروازه کازرون', 'گویم', 'کوزه‌گری', 'سنگ سیاه', 'لب آب', 'سعدی', 'چمران', 'زرگری', 'عفیف‌آباد', 'فرهنگ‌شهر', 'اطلسی', 'ستارخان', 'بلوار حافظ', 'ارم', 'دلگشا', 'زند', 'هفت تنان', 'قصردشت', 'معالی‌آباد', 'قصرالدشت', 'نارنجستان', 'میرزای شیرازی'],
+    rails: ['راه‌آهن شیراز', 'ترمینال کاراندیش', 'ترمینال امیرکبیر', 'فرودگاه دستغیب'],
+    utils: ['برق فارس', 'آبفای شیراز'],
+    landmarks: ['columns', 'gate'],
+  },
+  mashhad: {
+    label: 'مشهد',
+    props: ['طبرسی', 'گلشهر', 'طلاب', 'قاسم‌آباد', 'کوی سیدی', 'وکیل‌آباد', 'فلسطین', 'معلم', 'سناباد', 'کوهسنگی', 'احمدآباد', 'سجاد', 'هاشمیه', 'هفت تیر', 'فرامرز', 'پیروزی', 'بهارستان', 'صیاد شیرازی', 'الهیه', 'رضاشهر', 'سیدرضی', 'امام رضا'],
+    rails: ['راه‌آهن مشهد', 'ترمینال امام رضا', 'ترمینال معراج', 'فرودگاه هاشمی‌نژاد'],
+    utils: ['برق خراسان', 'آبفای مشهد'],
+    landmarks: ['shrine', 'dome'],
+  },
+  tabriz: {
+    label: 'تبریز',
+    props: ['آخماقیه', 'مارالان', 'خطیب', 'قراملک', 'سیلاب', 'آبرسان', 'منظریه', 'ولیعصر', 'باغمیشه', 'رشدیه', 'یاغچیان', 'ائل‌گلی', 'شهرک نور', 'زعفرانیه', 'منصور', 'لاله', 'چایکنار', 'گلکار', 'کوی فردوس', 'بهارستان', 'شریعتی', 'ابوریحان'],
+    rails: ['راه‌آهن تبریز', 'ترمینال مرکزی', 'ترمینال آذربایجان', 'فرودگاه تبریز'],
+    utils: ['برق آذربایجان', 'آبفای تبریز'],
+    landmarks: ['bluemosque', 'elgoli'],
+  },
+};
+
+// Rewrite the board (and the city-specific Chance cards) for the chosen city.
+function applyCity(key) {
+  const c = CITIES[key] || CITIES.tehran;
+  PROP_INDICES.forEach((idx, k) => { BOARD[idx].name = c.props[k]; });
+  RAIL_INDICES.forEach((idx, k) => { BOARD[idx].name = c.rails[k]; });
+  UTIL_INDICES.forEach((idx, k) => { BOARD[idx].name = c.utils[k]; });
+  // keep the "advance to <place>" cards consistent with the new names
+  CHANCE.forEach(card => {
+    if (card.action === 'move:24') card.text = `به ${BOARD[24].name} برو.`;
+    if (card.action === 'move:11') card.text = `به ${BOARD[11].name} برو.`;
+    if (card.action === 'move:5')  card.text = `سفری به ${BOARD[5].name} برو.`;
+    if (card.action === 'move:39') card.text = `به ${BOARD[39].name} برو.`;
+  });
+}
