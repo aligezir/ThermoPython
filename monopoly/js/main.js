@@ -68,9 +68,18 @@ const Controller = {
 
     const hooks = {
       render: () => { UI.render(); this.scheduleAI(); },
-      log: (m, t) => UI.log(m, t),
+      log: (m, t) => {
+        UI.log(m, t);
+        // mirror events as popups during the human player's own turn
+        const g = this.game;
+        if (g && !g.player.isAI && g.phase !== 'gameover'
+            && !m.startsWith('—') && !m.startsWith('🎲 بازی')) {
+          UI.pushEvent(m, t);
+        }
+      },
       showCard: (c, d) => UI.showCard(c, d),
       animateMove: (id, f, to, cb) => UI.animateMove(id, f, to, cb),
+      onLand: (p, i) => UI.showLanding(p, i),
       gameOver: (w) => UI.gameOver(w),
     };
     this.game = new MonopolyGame(cfgs, hooks);
@@ -81,6 +90,7 @@ const Controller = {
 
   /* ---- human actions --------------------------------------------------- */
   humanRoll() {
+    UI.pendingDiceAnim = true;
     this.game.rollDice();
     UI.render();
   },
@@ -118,6 +128,7 @@ const Controller = {
     if (g.phase === 'preroll') {
       if (p.inJail) return this.aiJail();
       this.aiBuild();
+      UI.pendingDiceAnim = true;
       this.game.rollDice();
       UI.render();
     } else if (g.phase === 'postroll') {
@@ -135,6 +146,7 @@ const Controller = {
     UI.render();
     if (!p.inJail) { this.aiBuild(); }
     // roll (either to move after paying, or to try doubles)
+    UI.pendingDiceAnim = true;
     g.rollDice();
     UI.render();
   },

@@ -226,6 +226,7 @@ class MonopolyGame {
 
   _land(p, index, diceTotal) {
     const sp = BOARD[index];
+    if (this.hooks.onLand) this.hooks.onLand(p, index);   // space-name + owner popup
     switch (sp.type) {
       case 'go':
         this.log(`${p.name} روی «شروع» فرود آمد.`);

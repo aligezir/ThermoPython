@@ -90,10 +90,11 @@ h1,h2,h3{margin:0 0 .4em}
 
 .tile-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:3px;gap:2px}
+/* names stay upright (player's reading view) on every edge */
 .edge-bottom .tile-body{padding-top:20%}
-.edge-top    .tile-body{padding-bottom:20%;transform:rotate(180deg)}
-.edge-left   .tile-body{padding-right:20%;transform:rotate(90deg)}
-.edge-right  .tile-body{padding-left:20%;transform:rotate(-90deg)}
+.edge-top    .tile-body{padding-bottom:20%}
+.edge-left   .tile-body{padding-right:20%}
+.edge-right  .tile-body{padding-left:20%}
 
 .t-name{font-size:9px;font-weight:700;line-height:1.05;letter-spacing:-.2px}
 .t-price{font-size:9px;font-weight:600;color:#2c3e50}
@@ -143,15 +144,23 @@ h1,h2,h3{margin:0 0 .4em}
 .turn-banner{display:flex;align-items:center;gap:8px;background:var(--accent,#333);color:#fff;
   padding:8px 16px;border-radius:30px;font-weight:700;box-shadow:var(--shadow);font-size:clamp(12px,2.4vmin,17px)}
 .tb-token{font-size:20px}
-.dice{display:flex;gap:14px}
-.die{width:clamp(34px,7vmin,52px);aspect-ratio:1;background:#fff;border-radius:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,.25),inset 0 0 0 2px #eee;
-  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:14%}
-.die i{display:block;width:100%;aspect-ratio:1;border-radius:50%;margin:auto}
-.die i.on{background:#1c2b22}
-.die.empty{opacity:.35}
-.die.roll{animation:roll .5s}
-@keyframes roll{0%{transform:rotate(0) scale(.8)}100%{transform:rotate(360deg) scale(1)}}
+/* ---- 3D dice -------------------------------------------------------- */
+.dice{display:flex;gap:24px;perspective:700px;padding:8px 0}
+.die3d{--d:clamp(40px,8vmin,58px);width:var(--d);height:var(--d);position:relative}
+.die3d-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.18,.7,.2,1);transform:rotateX(-20deg) rotateY(20deg)}
+.die3d .face{position:absolute;inset:0;border-radius:16%;
+  background:linear-gradient(145deg,#ffffff,#e6ece6);
+  box-shadow:inset 0 0 0 2px #ccd4cc, inset 0 6px 10px rgba(255,255,255,.6);
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:13%}
+.die3d .face i{width:100%;aspect-ratio:1;border-radius:50%;margin:auto;background:transparent}
+.die3d .face i.on{background:radial-gradient(circle at 35% 30%,#5a5a5a,#111);box-shadow:0 1px 1px rgba(0,0,0,.4)}
+.die3d .f1{transform:translateZ(calc(var(--d)/2))}
+.die3d .f6{transform:rotateY(180deg) translateZ(calc(var(--d)/2))}
+.die3d .f2{transform:rotateY(90deg)  translateZ(calc(var(--d)/2))}
+.die3d .f5{transform:rotateY(-90deg) translateZ(calc(var(--d)/2))}
+.die3d .f3{transform:rotateX(90deg)  translateZ(calc(var(--d)/2))}
+.die3d .f4{transform:rotateX(-90deg) translateZ(calc(var(--d)/2))}
 .bank-note{font-size:12px;color:#34503f;font-weight:600}
 
 #action-bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
@@ -275,3 +284,25 @@ h1,h2,h3{margin:0 0 .4em}
   background:#1c2b22;color:#fff;padding:10px 18px;border-radius:30px;font-size:14px;font-weight:600;
   opacity:0;transition:.3s;box-shadow:var(--shadow)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* landing popup — space name + owner, shown for ~3s on every landing */
+.land-pop{position:fixed;top:16%;left:50%;transform:translateX(-50%) translateY(-14px) scale(.96);
+  z-index:66;background:#13261c;color:#fff;border-radius:18px;padding:16px 26px;text-align:center;
+  box-shadow:0 18px 46px rgba(0,0,0,.5);opacity:0;transition:.35s;border-top:7px solid var(--accent,#f4c430);min-width:240px}
+.land-pop.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+.land-pop .lp-kind{font-size:12px;letter-spacing:1px;opacity:.7;margin-bottom:4px}
+.land-pop .lp-name{font-size:22px;font-weight:800}
+.land-pop .lp-owner{font-size:14px;margin-top:6px;opacity:.92}
+.land-pop .lp-owner b{color:#f4c430}
+
+/* per-event popups for the human player's own turn (stacked) */
+#event-stack{position:fixed;top:74px;left:14px;z-index:64;display:flex;flex-direction:column;gap:8px;
+  max-width:300px;pointer-events:none}
+.evt{background:#fff;color:#1c2b22;border-inline-start:5px solid #2ecc71;border-radius:10px;
+  padding:9px 13px;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.28);
+  opacity:0;transform:translateX(-14px);transition:.3s}
+.evt.show{opacity:1;transform:translateX(0)}
+.evt.warn{border-color:#e74c3c}
+.evt.buy{border-color:#16924f}
+.evt.build{border-color:#2980b9}
+.evt.auction{border-color:#8e44ad}

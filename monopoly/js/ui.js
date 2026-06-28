@@ -10,6 +10,7 @@ const UI = {
   tileEls: [],
   tileCenters: [],
   tokenEls: {},
+  pendingDiceAnim: false,
 
   /* ---- board grid geometry -------------------------------------------- */
   cellOf(i) {
@@ -89,7 +90,7 @@ const UI = {
   },
 
   tileInner(sp, i) {
-    const utilIcon = sp.name === 'تأسیسات آب' ? '🚰' : '💡';
+    const utilIcon = sp.name === 'آبفای تهران' ? '🚰' : '💡';
     if (sp.type === 'go') return `<div class="corner-label">۲۰۰ دلار<br>بگیر<br><span class="big">شروع</span></div>`;
     if (sp.type === 'jail') return `<div class="corner-label"><span class="big">🔒</span><br>زندان<br>بازدید</div>`;
     if (sp.type === 'freeparking') return `<div class="corner-label">پارکینگ<br><span class="big">🅿️</span><br>رایگان</div>`;
@@ -263,20 +264,54 @@ const UI = {
         <span class="tb-token">${tk.emoji}</span>
         <span>نوبت ${g.player.name}</span>
       </div>
-      <div class="dice">
-        ${this.dieFace(d1)} ${this.dieFace(d2)}
-      </div>
+      <div class="dice" id="dice"></div>
       <div class="bank-note">🏦 خانهٔ باقی‌مانده: ${g.housesLeft} · هتل باقی‌مانده: ${g.hotelsLeft}</div>
       <div id="action-bar"></div>`;
     this.el.actions = document.getElementById('action-bar');
+    this.renderDice(this.pendingDiceAnim);
+    this.pendingDiceAnim = false;
   },
 
-  dieFace(n) {
-    if (!n) return `<div class="die empty"></div>`;
-    const pips = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] }[n];
-    let cells = '';
-    for (let k = 0; k < 9; k++) cells += `<i class="${pips.includes(k) ? 'on' : ''}"></i>`;
-    return `<div class="die">${cells}</div>`;
+  /* ---- 3D dice -------------------------------------------------------- */
+  pipCells(n) {
+    const pips = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] }[n] || [];
+    let c = '';
+    for (let k = 0; k < 9; k++) c += `<i class="${pips.includes(k) ? 'on' : ''}"></i>`;
+    return c;
+  },
+  die3dHTML() {
+    let faces = '';
+    for (let v = 1; v <= 6; v++) faces += `<div class="face f${v}">${this.pipCells(v)}</div>`;
+    return `<div class="die3d"><div class="die3d-cube">${faces}</div></div>`;
+  },
+  // rotation (deg) that brings face `v` to the front; small tilt keeps it 3D.
+  baseRot(v) {
+    const m = { 1:{x:0,y:0}, 2:{x:0,y:-90}, 3:{x:-90,y:0}, 4:{x:90,y:0}, 5:{x:0,y:90}, 6:{x:-180,y:0} }[v];
+    return { x: m.x - 16, y: m.y + 16 };
+  },
+  renderDice(animate) {
+    const host = document.getElementById('dice');
+    if (!host) return;
+    let [d1, d2] = this.game.dice;
+    d1 = d1 || 1; d2 = d2 || 1;
+    host.innerHTML = this.die3dHTML() + this.die3dHTML();
+    const cubes = host.querySelectorAll('.die3d-cube');
+    const place = (cube, v, spin) => {
+      const b = this.baseRot(v);
+      const rest = `rotateX(${b.x}deg) rotateY(${b.y}deg)`;
+      if (animate) {
+        cube.style.transition = 'none';
+        cube.style.transform = rest;
+        void cube.offsetWidth;                       // force reflow so the spin animates
+        cube.style.transition = '';
+        cube.style.transform = `rotateX(${b.x + spin}deg) rotateY(${b.y + spin}deg)`;
+      } else {
+        cube.style.transition = 'none';
+        cube.style.transform = rest;
+      }
+    };
+    place(cubes[0], d1, 720);
+    place(cubes[1], d2, 1080);
   },
 
   /* ---- action bar (depends on phase / pending) ------------------------- */
@@ -572,6 +607,49 @@ const UI = {
     document.body.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 1800);
+  },
+
+  /* ---- landing popup: space name + owner, shown ~3s for every landing -- */
+  showLanding(player, index) {
+    const g = this.game;
+    const sp = BOARD[index];
+    const tk = TOKENS.find(t => t.id === player.token);
+    let sub;
+    if (sp.type === 'property' || sp.type === 'railroad' || sp.type === 'utility') {
+      const ownerId = g.owner[index];
+      if (ownerId === null) sub = `بدون مالک · ${sp.price} دلار`;
+      else if (ownerId === player.id) sub = 'ملک خودِ شما 🏠';
+      else sub = `صاحب: <b>${g.players[ownerId].name}</b>${g.mortgaged[index] ? ' (در رهن)' : ''}`;
+    } else {
+      sub = {
+        go: 'دریافت ۲۰۰ دلار', tax: `پرداخت ${sp.amount} دلار`,
+        chance: 'یک کارت شانس بکش', chest: 'یک کارت صندوق مشترک بکش',
+        jail: 'فقط بازدید', freeparking: 'استراحت', gotojail: 'به زندان می‌روی!',
+      }[sp.type] || '';
+    }
+    document.querySelectorAll('.land-pop').forEach(e => e.remove());
+    const el = document.createElement('div');
+    el.className = 'land-pop';
+    el.style.setProperty('--accent', sp.group ? GROUP_COLORS[sp.group] : tk.color);
+    el.innerHTML = `<div class="lp-kind">${tk.emoji} ${player.name}</div>
+      <div class="lp-name">${sp.name}</div>
+      <div class="lp-owner">${sub}</div>`;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 3000);
+  },
+
+  /* ---- per-event popup for the human player's own turn ---------------- */
+  pushEvent(msg, type = '') {
+    const stack = document.getElementById('event-stack');
+    if (!stack) return;
+    const el = document.createElement('div');
+    el.className = 'evt ' + (type || '');
+    el.textContent = msg;
+    stack.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 320); }, 3000);
+    while (stack.children.length > 5) stack.removeChild(stack.firstChild);
   },
 
   onTileClick(i) {
